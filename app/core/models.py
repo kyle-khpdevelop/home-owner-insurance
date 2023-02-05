@@ -2,6 +2,7 @@
 Database models
 """
 import json
+import typing as t
 from dataclasses import dataclass
 
 from django.conf import settings
@@ -27,13 +28,13 @@ class DataClassField(m.JSONField):
         kwargs["dataClass"] = self.dataClass
         return name, path, args, kwargs
 
-    def from_db_value(self, value, expression, connection):
+    def from_db_value(self, value: str, expression, connection):
         if value is None:
             return value
         obj = json.loads(value)
         return obj
 
-    def to_python(self, value):
+    def to_python(self, value: str):
         if isinstance(value, self.dataClass):
             return value
         if value is None:
@@ -41,7 +42,7 @@ class DataClassField(m.JSONField):
         obj = json.loads(value)
         return obj
 
-    def get_prep_value(self, value):
+    def get_prep_value(self, value: dict[str, t.Any]):
         if value is None:
             return value
         return json.dumps(value)
@@ -50,7 +51,7 @@ class DataClassField(m.JSONField):
 class UserManager(BaseUserManager):
     """Manager for users"""
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email: str, password: str | None = None, **extra_fields):
         """Create, save and return a new user"""
         if not email:
             raise ValueError("User must have an email address")
@@ -99,10 +100,19 @@ class States(m.TextChoices):
 
 
 @dataclass
-class QuoteAdditionalCoverages:
-    flood_coverage: bool
+class QuoteFlatCostCoverages:
+    coverage_type: QuoteCoverageTypes
+    pet_coverage: bool
 
     def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
+
+
+@dataclass
+class QuotePercentageCostCoverages:
+    flood_coverage: bool
+
+    def to_json(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__)
 
 
@@ -115,9 +125,10 @@ class Quote(m.Model):
     )
     buyer_first_name = m.CharField(max_length=255)
     buyer_last_name = m.CharField(max_length=255)
-    coverage_type = m.CharField(max_length=100, choices=QuoteCoverageTypes.choices)
-    pet_coverage = m.BooleanField(default=False)
     state = m.CharField(max_length=2, choices=States.choices)
-    additional_coverage = DataClassField(
-        dataClass=QuoteAdditionalCoverages, encoder=EnhancedJSONEncoder
+    flat_cost_coverage = DataClassField(
+        dataClass=QuoteFlatCostCoverages, encoder=EnhancedJSONEncoder
+    )
+    percentage_cost_coverage = DataClassField(
+        dataClass=QuotePercentageCostCoverages, encoder=EnhancedJSONEncoder
     )

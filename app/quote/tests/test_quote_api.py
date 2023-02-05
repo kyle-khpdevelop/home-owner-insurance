@@ -31,10 +31,9 @@ def _create_quote(user: User, **params):
     defaults = {
         "buyer_first_name": "Test",
         "buyer_last_name": "User",
-        "coverage_type": "Basic",
-        "pet_coverage": True,
         "state": "CA",
-        "additional_coverage": {"flood_coverage": True},
+        "flat_cost_coverage": {"coverage_type": "Basic", "pet_coverage": True},
+        "percentage_cost_coverage": {"flood_coverage": True},
     }
     defaults.update(params)
     quote = Quote.objects.create(user=user, **defaults)
@@ -93,10 +92,12 @@ class PrivateQuoteAPITests(TestCase):
         payload = {
             "buyer_first_name": "Test",
             "buyer_last_name": "User",
-            "coverage_type": "Premium",
-            "pet_coverage": False,
             "state": "TX",
-            "additional_coverage": {"flood_coverage": False},
+            "flat_cost_coverage": {
+                "coverage_type": "Premium",
+                "pet_coverage": False,
+            },
+            "percentage_cost_coverage": {"flood_coverage": False},
         }
         res = self.client.post(QUOTES_URL, payload, format="json")
 
@@ -104,19 +105,19 @@ class PrivateQuoteAPITests(TestCase):
         quote = Quote.objects.get(id=res.data["id"])
         for k, v in payload.items():
             attribute = getattr(quote, k)
-            if k == "additional_coverage":
+            if k in ("flat_cost_coverage", "percentage_cost_coverage"):
                 attribute = json.loads(attribute)
             self.assertEqual(attribute, v)
         self.assertEqual(quote.user, self.user)
 
     def test_partial_update(self):
         """Test partial update of a quote"""
-        original_coverage_type = "Premium"
+        original_state = "CA"
         quote = _create_quote(
             user=self.user,
             buyer_first_name="Test",
             buyer_last_name="User",
-            coverage_type=original_coverage_type,
+            state=original_state,
         )
 
         payload = {"buyer_first_name": "New", "buyer_last_name": "Name"}
@@ -127,7 +128,7 @@ class PrivateQuoteAPITests(TestCase):
         quote.refresh_from_db()
         self.assertEqual(quote.buyer_first_name, payload["buyer_first_name"])
         self.assertEqual(quote.buyer_last_name, payload["buyer_last_name"])
-        self.assertEqual(quote.coverage_type, original_coverage_type)
+        self.assertEqual(quote.state, original_state)
         self.assertEqual(quote.user, self.user)
 
     def test_full_update(self):
@@ -136,28 +137,23 @@ class PrivateQuoteAPITests(TestCase):
             user=self.user,
             buyer_first_name="Test",
             buyer_last_name="User",
-            coverage_type="Basic",
-            pet_coverage=False,
             state="TX",
-            additional_coverage={"flood_coverage": False},
+            flat_cost_coverage={"coverage_type": "Basic", "pet_coverage": False},
+            percentage_cost_coverage={"flood_coverage": False},
         )
 
         payload = {
             "buyer_first_name": "New",
             "buyer_last_name": "Name",
-            "coverage_type": "Premium",
-            "pet_coverage": True,
             "state": "CA",
-            "additional_coverage": {"flood_coverage": True},
+            "flat_cost_coverage": {"coverage_type": "Premium", "pet_coverage": True},
+            "percentage_cost_coverage": {"flood_coverage": True},
         }
         url = _detail_url(quote.id)
         res = self.client.put(url, payload, format="json")
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         quote.refresh_from_db()
-        for k, v in payload.items():
-            attribute = getattr(quote, k)
-            print(f"Attribute: {k} | {attribute}")
         for k, v in payload.items():
             attribute = getattr(quote, k)
             self.assertEqual(attribute, v)

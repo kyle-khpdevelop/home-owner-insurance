@@ -14,7 +14,6 @@ class QuoteSerializer(serializers.ModelSerializer):
             "id",
             "buyer_first_name",
             "buyer_last_name",
-            "coverage_type",
         )
         read_only_fields = ["id"]
 
@@ -24,7 +23,7 @@ class QuoteDetailSerializer(QuoteSerializer):
 
     class Meta(QuoteSerializer.Meta):
         fields = QuoteSerializer.Meta.fields + (  # type: ignore
-            "pet_coverage",
             "state",
-            "additional_coverage",
+            "flat_cost_coverage",
+            "percentage_cost_coverage",
         )

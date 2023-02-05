@@ -4,8 +4,9 @@ Views for the Quote APIs
 import json
 
 from core.models import Quote
-from core.models import QuoteAdditionalCoverages
 from core.models import QuoteCoverageTypes
+from core.models import QuoteFlatCostCoverages
+from core.models import QuotePercentageCostCoverages
 from core.models import States
 from quote.serializers import QuoteDetailSerializer
 from quote.serializers import QuoteSerializer
@@ -40,16 +41,24 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer: ModelSerializer):
         """Create a new quote"""
-        additional_coverage_data = serializer.validated_data["additional_coverage"]
-        additional_coverage = QuoteAdditionalCoverages(
-            flood_coverage=additional_coverage_data.get("flood_coverage"),
+        flat_cost_coverage_data = serializer.validated_data["flat_cost_coverage"]
+        flat_cost_coverage = QuoteFlatCostCoverages(
+            coverage_type=QuoteCoverageTypes(flat_cost_coverage_data["coverage_type"]),
+            pet_coverage=flat_cost_coverage_data["pet_coverage"],
         )
 
-        serializer.validated_data["coverage_type"] = QuoteCoverageTypes(
-            serializer.validated_data["coverage_type"]
+        percentage_cost_coverage_data = serializer.validated_data[
+            "percentage_cost_coverage"
+        ]
+        percentage_cost_coverage = QuotePercentageCostCoverages(
+            flood_coverage=percentage_cost_coverage_data.get("flood_coverage"),
         )
+
         serializer.validated_data["state"] = States(serializer.validated_data["state"])
-        serializer.validated_data["additional_coverage"] = json.dumps(
-            additional_coverage, cls=EnhancedJSONEncoder
+        serializer.validated_data["flat_cost_coverage"] = json.dumps(
+            flat_cost_coverage, cls=EnhancedJSONEncoder
+        )
+        serializer.validated_data["percentage_cost_coverage"] = json.dumps(
+            percentage_cost_coverage, cls=EnhancedJSONEncoder
         )
         serializer.save(user=self.request.user)
