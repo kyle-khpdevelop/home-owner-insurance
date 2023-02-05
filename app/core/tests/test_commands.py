@@ -29,7 +29,6 @@ class CommandTests(SimpleTestCase):
         patched_check: MagicMock,
     ):
         """Test waiting for database when getting OperationalError"""
-
         # The first 2 checks raise Psycopg2OpError
         # The next 3 checks raise an OperationalError
         # The sixth check will return True to indicate the DB is ready
