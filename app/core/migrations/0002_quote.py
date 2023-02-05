@@ -40,14 +40,14 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "flat_cost_coverage",
+                    "flat_cost_coverages",
                     core.models.DataClassField(
                         dataClass=core.models.QuoteFlatCostCoverages,
                         encoder=quote.utils.EnhancedJSONEncoder,
                     ),
                 ),
                 (
-                    "percentage_cost_coverage",
+                    "percentage_cost_coverages",
                     core.models.DataClassField(
                         dataClass=core.models.QuotePercentageCostCoverages,
                         encoder=quote.utils.EnhancedJSONEncoder,

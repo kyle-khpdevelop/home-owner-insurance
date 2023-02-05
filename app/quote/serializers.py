@@ -24,6 +24,6 @@ class QuoteDetailSerializer(QuoteSerializer):
     class Meta(QuoteSerializer.Meta):
         fields = QuoteSerializer.Meta.fields + (  # type: ignore
             "state",
-            "flat_cost_coverage",
-            "percentage_cost_coverage",
+            "flat_cost_coverages",
+            "percentage_cost_coverages",
         )

@@ -3,14 +3,14 @@ Views for the Quote APIs
 """
 import json
 
+import quote.utils as quote_util
 from core.models import Quote
-from core.models import QuoteCoverageTypes
-from core.models import QuoteFlatCostCoverages
-from core.models import QuotePercentageCostCoverages
-from core.models import States
+from quote.constants import QuoteCoverageTypes
+from quote.constants import QuoteFlatCostCoverages
+from quote.constants import QuotePercentageCostCoverages
+from quote.constants import States
 from quote.serializers import QuoteDetailSerializer
 from quote.serializers import QuoteSerializer
-from quote.utils import EnhancedJSONEncoder
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import AuthenticationFailed
@@ -41,24 +41,39 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer: ModelSerializer):
         """Create a new quote"""
-        flat_cost_coverage_data = serializer.validated_data["flat_cost_coverage"]
-        flat_cost_coverage = QuoteFlatCostCoverages(
-            coverage_type=QuoteCoverageTypes(flat_cost_coverage_data["coverage_type"]),
+
+        serializer.validated_data["state"] = States(serializer.validated_data["state"])
+
+        (
+            monthly_subtotal,
+            monthly_taxes,
+            monthly_total,
+        ) = quote_util.calculate_quote_cost(
+            serializer.validated_data["state"],
+            serializer.validated_data["flat_cost_coverages"],
+            serializer.validated_data["percentage_cost_coverages"],
+        )
+        serializer.validated_data["monthly_subtotal"] = monthly_subtotal
+        serializer.validated_data["monthly_taxes"] = monthly_taxes
+        serializer.validated_data["monthly_total"] = monthly_total
+
+        flat_cost_coverage_data = serializer.validated_data["flat_cost_coverages"]
+        flat_cost_coverages = QuoteFlatCostCoverages(
+            type_coverage=QuoteCoverageTypes(flat_cost_coverage_data["type_coverage"]),
             pet_coverage=flat_cost_coverage_data["pet_coverage"],
+        )
+        serializer.validated_data["flat_cost_coverages"] = json.dumps(
+            flat_cost_coverages, cls=quote_util.EnhancedJSONEncoder
         )
 
         percentage_cost_coverage_data = serializer.validated_data[
-            "percentage_cost_coverage"
+            "percentage_cost_coverages"
         ]
-        percentage_cost_coverage = QuotePercentageCostCoverages(
+        percentage_cost_coverages = QuotePercentageCostCoverages(
             flood_coverage=percentage_cost_coverage_data.get("flood_coverage"),
         )
+        serializer.validated_data["percentage_cost_coverages"] = json.dumps(
+            percentage_cost_coverages, cls=quote_util.EnhancedJSONEncoder
+        )
 
-        serializer.validated_data["state"] = States(serializer.validated_data["state"])
-        serializer.validated_data["flat_cost_coverage"] = json.dumps(
-            flat_cost_coverage, cls=EnhancedJSONEncoder
-        )
-        serializer.validated_data["percentage_cost_coverage"] = json.dumps(
-            percentage_cost_coverage, cls=EnhancedJSONEncoder
-        )
         serializer.save(user=self.request.user)

@@ -2,6 +2,7 @@
 Tests for the quote API
 """
 import json
+from decimal import Decimal
 
 from core.models import Quote
 from core.models import User
@@ -32,8 +33,8 @@ def _create_quote(user: User, **params):
         "buyer_first_name": "Test",
         "buyer_last_name": "User",
         "state": "CA",
-        "flat_cost_coverage": {"coverage_type": "Basic", "pet_coverage": True},
-        "percentage_cost_coverage": {"flood_coverage": True},
+        "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": True},
+        "percentage_cost_coverages": {"flood_coverage": True},
     }
     defaults.update(params)
     quote = Quote.objects.create(user=user, **defaults)
@@ -93,11 +94,11 @@ class PrivateQuoteAPITests(TestCase):
             "buyer_first_name": "Test",
             "buyer_last_name": "User",
             "state": "TX",
-            "flat_cost_coverage": {
-                "coverage_type": "Premium",
+            "flat_cost_coverages": {
+                "type_coverage": "Premium",
                 "pet_coverage": False,
             },
-            "percentage_cost_coverage": {"flood_coverage": False},
+            "percentage_cost_coverages": {"flood_coverage": False},
         }
         res = self.client.post(QUOTES_URL, payload, format="json")
 
@@ -105,7 +106,7 @@ class PrivateQuoteAPITests(TestCase):
         quote = Quote.objects.get(id=res.data["id"])
         for k, v in payload.items():
             attribute = getattr(quote, k)
-            if k in ("flat_cost_coverage", "percentage_cost_coverage"):
+            if k in ("flat_cost_coverages", "percentage_cost_coverages"):
                 attribute = json.loads(attribute)
             self.assertEqual(attribute, v)
         self.assertEqual(quote.user, self.user)
@@ -138,16 +139,16 @@ class PrivateQuoteAPITests(TestCase):
             buyer_first_name="Test",
             buyer_last_name="User",
             state="TX",
-            flat_cost_coverage={"coverage_type": "Basic", "pet_coverage": False},
-            percentage_cost_coverage={"flood_coverage": False},
+            flat_cost_coverages={"type_coverage": "Basic", "pet_coverage": False},
+            percentage_cost_coverages={"flood_coverage": False},
         )
 
         payload = {
             "buyer_first_name": "New",
             "buyer_last_name": "Name",
             "state": "CA",
-            "flat_cost_coverage": {"coverage_type": "Premium", "pet_coverage": True},
-            "percentage_cost_coverage": {"flood_coverage": True},
+            "flat_cost_coverages": {"type_coverage": "Premium", "pet_coverage": True},
+            "percentage_cost_coverages": {"flood_coverage": True},
         }
         url = _detail_url(quote.id)
         res = self.client.put(url, payload, format="json")
@@ -197,18 +198,22 @@ class PrivateQuoteAPITests(TestCase):
 
     def test_create_quote_bad_data_state(self):
         """Test creating a quote with bad data"""
-        payload = {"state": "FL"}
+        payload = {"state": None}
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {"state": "ZZ"}
         res = self.client.post(QUOTES_URL, payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_quote_bad_data_flat_cost_coverage(self):
         """Test creating a quote with bad data"""
-        payload = {"flat_cost_coverage": {}}
+        payload = {"flat_cost_coverages": {}}
         res = self.client.post(QUOTES_URL, payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         payload = {
-            "flat_cost_coverage": {
+            "flat_cost_coverages": {
                 "bad_coverage": True,
             }
         }
@@ -216,9 +221,9 @@ class PrivateQuoteAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         payload = {
-            "flat_cost_coverage": {
+            "flat_cost_coverages": {
                 "bad_coverage": True,
-                "coverage_type": "Premium",
+                "type_coverage": "Premium",
                 "pet_coverage": True,
             }
         }
@@ -226,32 +231,32 @@ class PrivateQuoteAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         payload = {
-            "flat_cost_coverage": {
-                "coverage_type": "Super Premium",
+            "flat_cost_coverages": {
+                "type_coverage": "Super Premium",
                 "pet_coverage": True,
             }
         }
         res = self.client.post(QUOTES_URL, payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-        payload = {"flat_cost_coverage": {"coverage_type": None, "pet_coverage": True}}
+        payload = {"flat_cost_coverages": {"type_coverage": None, "pet_coverage": True}}
         res = self.client.post(QUOTES_URL, payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         payload = {
-            "flat_cost_coverage": {"coverage_type": "Basic", "pet_coverage": None}
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": None}
         }
         res = self.client.post(QUOTES_URL, payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_quote_bad_data_percentage_cost_coverage(self):
         """Test creating a quote with bad data"""
-        payload = {"percentage_cost_coverage": {}}
+        payload = {"percentage_cost_coverages": {}}
         res = self.client.post(QUOTES_URL, payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         payload = {
-            "percentage_cost_coverage": {
+            "percentage_cost_coverages": {
                 "bad_coverage": True,
             }
         }
@@ -259,7 +264,7 @@ class PrivateQuoteAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         payload = {
-            "percentage_cost_coverage": {
+            "percentage_cost_coverages": {
                 "bad_coverage": True,
                 "flood_coverage": True,
             }
@@ -267,6 +272,63 @@ class PrivateQuoteAPITests(TestCase):
         res = self.client.post(QUOTES_URL, payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-        payload = {"percentage_cost_coverage": {"flood_coverage": None}}
+        payload = {"percentage_cost_coverages": {"flood_coverage": None}}
         res = self.client.post(QUOTES_URL, payload, format="json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_validate_california_cost(self):
+        state = "CA"
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": True},
+            "percentage_cost_coverages": {"flood_coverage": True},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("40.8"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.41"))
+        self.assertEqual(quote.monthly_total, Decimal("41.21"))
+
+    def test_validate_texas_cost(self):
+        state = "TX"
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": True},
+            "percentage_cost_coverages": {"flood_coverage": True},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("60"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.3"))
+        self.assertEqual(quote.monthly_total, Decimal("60.30"))
+
+    def test_validate_new_york_cost(self):
+        state = "NY"
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": True},
+            "percentage_cost_coverages": {"flood_coverage": True},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("44"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.88"))
+        self.assertEqual(quote.monthly_total, Decimal("44.88"))

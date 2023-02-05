@@ -44,3 +44,6 @@ django-admin startproject <project_name> .
 ```
 docker-compose run --rm app sh -c "python manage.py test"
 ```
+
+## Product Enhancements for additional phases
+1. Setup

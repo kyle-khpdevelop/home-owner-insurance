@@ -1,51 +1,16 @@
 """
 Database models
 """
-import json
-import typing as t
-from dataclasses import dataclass
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models as m
-from django.utils.translation import gettext_lazy as _
+from quote.constants import DataClassField
+from quote.constants import QuoteFlatCostCoverages
+from quote.constants import QuotePercentageCostCoverages
+from quote.constants import States
 from quote.utils import EnhancedJSONEncoder
-
-# Used to create dataclasses from dictionary
-
-
-class DataClassField(m.JSONField):
-    """Map Python's dataclass to model."""
-
-    def __init__(self, dataClass, *args, **kwargs):
-        self.dataClass = dataClass
-        super().__init__(*args, **kwargs)
-
-    def deconstruct(self):
-        name, path, args, kwargs = super().deconstruct()
-        kwargs["dataClass"] = self.dataClass
-        return name, path, args, kwargs
-
-    def from_db_value(self, value: str, expression, connection):
-        if value is None:
-            return value
-        obj = json.loads(value)
-        return obj
-
-    def to_python(self, value: str):
-        if isinstance(value, self.dataClass):
-            return value
-        if value is None:
-            return value
-        obj = json.loads(value)
-        return obj
-
-    def get_prep_value(self, value: dict[str, t.Any]):
-        if value is None:
-            return value
-        return json.dumps(value)
 
 
 class UserManager(BaseUserManager):
@@ -88,34 +53,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
 
 
-class QuoteCoverageTypes(m.TextChoices):
-    Basic = "Basic", _("Basic")
-    Premium = "Premium", _("Premium")
-
-
-class States(m.TextChoices):
-    California = "CA", _("California")
-    Texas = "TX", _("Texas")
-    New_York = "NY", _("New York")
-
-
-@dataclass
-class QuoteFlatCostCoverages:
-    coverage_type: QuoteCoverageTypes
-    pet_coverage: bool
-
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__)
-
-
-@dataclass
-class QuotePercentageCostCoverages:
-    flood_coverage: bool
-
-    def to_json(self) -> str:
-        return json.dumps(self, default=lambda o: o.__dict__)
-
-
 class Quote(m.Model):
     """Quote object"""
 
@@ -126,9 +63,12 @@ class Quote(m.Model):
     buyer_first_name = m.CharField(max_length=255)
     buyer_last_name = m.CharField(max_length=255)
     state = m.CharField(max_length=2, choices=States.choices)
-    flat_cost_coverage = DataClassField(
+    flat_cost_coverages = DataClassField(
         dataClass=QuoteFlatCostCoverages, encoder=EnhancedJSONEncoder
     )
-    percentage_cost_coverage = DataClassField(
+    percentage_cost_coverages = DataClassField(
         dataClass=QuotePercentageCostCoverages, encoder=EnhancedJSONEncoder
     )
+    monthly_subtotal = m.DecimalField(max_digits=6, decimal_places=2, default=0)
+    monthly_taxes = m.DecimalField(max_digits=6, decimal_places=2, default=0)
+    monthly_total = m.DecimalField(max_digits=7, decimal_places=2, default=0)
