@@ -194,3 +194,79 @@ class PrivateQuoteAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Quote.objects.filter(id=quote.id).exists())
+
+    def test_create_quote_bad_data_state(self):
+        """Test creating a quote with bad data"""
+        payload = {"state": "FL"}
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_quote_bad_data_flat_cost_coverage(self):
+        """Test creating a quote with bad data"""
+        payload = {"flat_cost_coverage": {}}
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "flat_cost_coverage": {
+                "bad_coverage": True,
+            }
+        }
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "flat_cost_coverage": {
+                "bad_coverage": True,
+                "coverage_type": "Premium",
+                "pet_coverage": True,
+            }
+        }
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "flat_cost_coverage": {
+                "coverage_type": "Super Premium",
+                "pet_coverage": True,
+            }
+        }
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {"flat_cost_coverage": {"coverage_type": None, "pet_coverage": True}}
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "flat_cost_coverage": {"coverage_type": "Basic", "pet_coverage": None}
+        }
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_quote_bad_data_percentage_cost_coverage(self):
+        """Test creating a quote with bad data"""
+        payload = {"percentage_cost_coverage": {}}
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "percentage_cost_coverage": {
+                "bad_coverage": True,
+            }
+        }
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "percentage_cost_coverage": {
+                "bad_coverage": True,
+                "flood_coverage": True,
+            }
+        }
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {"percentage_cost_coverage": {"flood_coverage": None}}
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
