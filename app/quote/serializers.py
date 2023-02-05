@@ -22,8 +22,8 @@ class QuoteSerializer(serializers.ModelSerializer):
 class QuoteDetailSerializer(QuoteSerializer):
     """Serializer for quote detail view"""
 
-    class Meta:
-        fields = QuoteSerializer.Meta.fields + (
+    class Meta(QuoteSerializer.Meta):
+        fields = QuoteSerializer.Meta.fields + (  # type: ignore
             "pet_coverage",
             "state",
             "additional_coverage",
