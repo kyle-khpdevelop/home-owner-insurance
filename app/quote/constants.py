@@ -56,22 +56,6 @@ class QuoteCoverageTypesCost:
     Premium: int
 
 
-class States(m.TextChoices):
-    """Options for States"""
-
-    """
-        Rules for adding a new state:
-        - Use naming convention:
-            <FSNV> = <2 letter state code>, _("<full state name>")
-        - NOTE: FSNV stands for Full State Name as a Variable
-        - NOTE: The variable should replace all spaces with `_`
-    """
-
-    California = "CA", _("California")
-    Texas = "TX", _("Texas")
-    New_York = "NY", _("New York")
-
-
 @dataclass
 class QuoteFlatCostCoverages:
     """Dataclass to store flat cost coverages"""
@@ -105,6 +89,22 @@ class QuotePercentageCostCoverages:
 
     def to_json(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__)
+
+
+class States(m.TextChoices):
+    """Options for States"""
+
+    """
+        Rules for adding a new state:
+        - Use naming convention:
+            <FSNV> = <2 letter state code>, _("<full state name>")
+        - NOTE: FSNV stands for Full State Name as a Variable
+        - NOTE: The variable should replace all spaces with `_`
+    """
+
+    California = "CA", _("California")
+    Texas = "TX", _("Texas")
+    New_York = "NY", _("New York")
 
 
 @dataclass

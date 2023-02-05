@@ -26,4 +26,12 @@ class QuoteDetailSerializer(QuoteSerializer):
             "state",
             "flat_cost_coverages",
             "percentage_cost_coverages",
+            "monthly_subtotal",
+            "monthly_taxes",
+            "monthly_total",
         )
+        read_only_fields = [
+            "monthly_subtotal",
+            "monthly_taxes",
+            "monthly_total",
+        ]
