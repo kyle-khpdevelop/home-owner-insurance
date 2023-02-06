@@ -130,7 +130,8 @@ class StateSpecificCosts:
         pet_coverage_cost: int = 20,
     ):
         self.type_coverage_cost = QuoteCoverageTypesCost(
-            Basic=type_coverage_cost_basic, Premium=type_coverage_cost_premium
+            Basic=type_coverage_cost_basic,
+            Premium=type_coverage_cost_premium,
         )
         self.pet_coverage_cost = pet_coverage_cost
 

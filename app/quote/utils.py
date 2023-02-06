@@ -5,6 +5,7 @@ import dataclasses
 import json
 import typing as t
 from decimal import Decimal
+from math import floor
 
 from quote.constants import STATE_MAPPING_COSTS
 
@@ -54,6 +55,8 @@ def calculate_quote_cost(
             monthly_subtotal *= 1 + (attr_cost / 100)
 
     monthly_taxes = monthly_subtotal * (state_coverage_cost.tax_rate / 100)
+    monthly_taxes = floor(monthly_taxes * 100) / 100
+
     monthly_total = monthly_subtotal + monthly_taxes
 
     return (Decimal(monthly_subtotal), Decimal(monthly_taxes), Decimal(monthly_total))

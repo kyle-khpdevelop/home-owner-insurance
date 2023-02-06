@@ -292,8 +292,42 @@ class PrivateQuoteAPITests(TestCase):
         quote = Quote.objects.get(id=res.data["id"])
         self.assertEqual(quote.state, state)
         self.assertEqual(quote.monthly_subtotal, Decimal("40.8"))
-        self.assertEqual(quote.monthly_taxes, Decimal("0.41"))
-        self.assertEqual(quote.monthly_total, Decimal("41.21"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.40"))
+        self.assertEqual(quote.monthly_total, Decimal("41.20"))
+
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": False},
+            "percentage_cost_coverages": {"flood_coverage": True},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("20.40"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.20"))
+        self.assertEqual(quote.monthly_total, Decimal("20.60"))
+
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": False},
+            "percentage_cost_coverages": {"flood_coverage": False},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("20"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.20"))
+        self.assertEqual(quote.monthly_total, Decimal("20.20"))
 
         payload = {
             "buyer_first_name": "Test",
@@ -326,8 +360,8 @@ class PrivateQuoteAPITests(TestCase):
         quote = Quote.objects.get(id=res.data["id"])
         self.assertEqual(quote.state, state)
         self.assertEqual(quote.monthly_subtotal, Decimal("40.8"))
-        self.assertEqual(quote.monthly_taxes, Decimal("0.41"))
-        self.assertEqual(quote.monthly_total, Decimal("41.21"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.40"))
+        self.assertEqual(quote.monthly_total, Decimal("41.20"))
 
         payload = {
             "buyer_first_name": "Test",
@@ -364,6 +398,40 @@ class PrivateQuoteAPITests(TestCase):
         self.assertEqual(quote.monthly_subtotal, Decimal("60"))
         self.assertEqual(quote.monthly_taxes, Decimal("0.3"))
         self.assertEqual(quote.monthly_total, Decimal("60.30"))
+
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": False},
+            "percentage_cost_coverages": {"flood_coverage": True},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("30"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.15"))
+        self.assertEqual(quote.monthly_total, Decimal("30.15"))
+
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": False},
+            "percentage_cost_coverages": {"flood_coverage": False},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("20"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.10"))
+        self.assertEqual(quote.monthly_total, Decimal("20.10"))
 
         payload = {
             "buyer_first_name": "Test",
@@ -451,6 +519,40 @@ class PrivateQuoteAPITests(TestCase):
         self.assertEqual(quote.monthly_subtotal, Decimal("66"))
         self.assertEqual(quote.monthly_taxes, Decimal("1.32"))
         self.assertEqual(quote.monthly_total, Decimal("67.32"))
+
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": False},
+            "percentage_cost_coverages": {"flood_coverage": True},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("22"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.44"))
+        self.assertEqual(quote.monthly_total, Decimal("22.44"))
+
+        payload = {
+            "buyer_first_name": "Test",
+            "buyer_last_name": "User",
+            "state": state,
+            "flat_cost_coverages": {"type_coverage": "Basic", "pet_coverage": False},
+            "percentage_cost_coverages": {"flood_coverage": False},
+        }
+
+        res = self.client.post(QUOTES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        quote = Quote.objects.get(id=res.data["id"])
+        self.assertEqual(quote.state, state)
+        self.assertEqual(quote.monthly_subtotal, Decimal("20"))
+        self.assertEqual(quote.monthly_taxes, Decimal("0.40"))
+        self.assertEqual(quote.monthly_total, Decimal("20.40"))
 
         payload = {
             "buyer_first_name": "Test",
