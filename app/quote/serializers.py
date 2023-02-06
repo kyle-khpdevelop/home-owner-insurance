@@ -5,6 +5,25 @@ from core.models import Quote
 from rest_framework import serializers
 
 
+class FlatCostCoveragesSerializer(serializers.Serializer):
+    type_coverage = serializers.ChoiceField(
+        choices=["Basic", "Premium"],
+        default="Basic",
+        help_text="The type of coverage",
+    )
+    pet_coverage = serializers.BooleanField(
+        default=False,
+        help_text="Optional coverage for pets",
+    )
+
+
+class PercentageCostCoveragesSerializer(serializers.Serializer):
+    flood_coverage = serializers.BooleanField(
+        default=False,
+        help_text="Optional coverage for floods",
+    )
+
+
 class QuoteSerializer(serializers.ModelSerializer):
     """Serializer for quotes"""
 
@@ -20,6 +39,11 @@ class QuoteSerializer(serializers.ModelSerializer):
 
 class QuoteDetailSerializer(QuoteSerializer):
     """Serializer for quote detail view"""
+
+    flat_cost_coverages = FlatCostCoveragesSerializer(help_text="Flat Cost Coverages")
+    percentage_cost_coverages = PercentageCostCoveragesSerializer(
+        help_text="Percentage Cost Coverages"
+    )
 
     class Meta(QuoteSerializer.Meta):
         fields = QuoteSerializer.Meta.fields + (  # type: ignore
