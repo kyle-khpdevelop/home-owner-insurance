@@ -1,13 +1,8 @@
 """
 Views for the Quote APIs
 """
-import json
-
 import quote.utils as quote_util
 from core.models import Quote
-from quote.constants import QuoteCoverageTypes
-from quote.constants import QuoteFlatCostCoverages
-from quote.constants import QuotePercentageCostCoverages
 from quote.constants import States
 from quote.serializers import QuoteDetailSerializer
 from quote.serializers import QuoteSerializer
@@ -30,7 +25,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
         """Retrieve quotes for authenticated user"""
         if self.request.user.id is None:
             raise AuthenticationFailed("Unauthorized", code=401)
-        return self.queryset.filter(user=self.request.user.id).order_by("-id")
+        return self.queryset.filter(user=self.request.user).order_by("-id")
 
     def get_serializer_class(self):
         """Return the serializer class for request"""
@@ -56,24 +51,5 @@ class QuoteViewSet(viewsets.ModelViewSet):
         serializer.validated_data["monthly_subtotal"] = monthly_subtotal
         serializer.validated_data["monthly_taxes"] = monthly_taxes
         serializer.validated_data["monthly_total"] = monthly_total
-
-        flat_cost_coverage_data = serializer.validated_data["flat_cost_coverages"]
-        flat_cost_coverages = QuoteFlatCostCoverages(
-            type_coverage=QuoteCoverageTypes(flat_cost_coverage_data["type_coverage"]),
-            pet_coverage=flat_cost_coverage_data["pet_coverage"],
-        )
-        serializer.validated_data["flat_cost_coverages"] = json.dumps(
-            flat_cost_coverages, cls=quote_util.EnhancedJSONEncoder
-        )
-
-        percentage_cost_coverage_data = serializer.validated_data[
-            "percentage_cost_coverages"
-        ]
-        percentage_cost_coverages = QuotePercentageCostCoverages(
-            flood_coverage=percentage_cost_coverage_data.get("flood_coverage"),
-        )
-        serializer.validated_data["percentage_cost_coverages"] = json.dumps(
-            percentage_cost_coverages, cls=quote_util.EnhancedJSONEncoder
-        )
 
         serializer.save(user=self.request.user)

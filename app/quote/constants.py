@@ -70,10 +70,6 @@ class QuoteFlatCostCoverages:
     type_coverage: QuoteCoverageTypes
     pet_coverage: bool
 
-    def __init__(self):
-        self.type_coverage = QuoteCoverageTypes.Basic
-        self.pet_coverage = False
-
     def to_json(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__)
 

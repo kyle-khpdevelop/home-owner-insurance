@@ -1,7 +1,6 @@
 """
 Tests for the quote API
 """
-import json
 from decimal import Decimal
 
 from core.models import Quote
@@ -106,8 +105,6 @@ class PrivateQuoteAPITests(TestCase):
         quote = Quote.objects.get(id=res.data["id"])
         for k, v in payload.items():
             attribute = getattr(quote, k)
-            if k in ("flat_cost_coverages", "percentage_cost_coverages"):
-                attribute = json.loads(attribute)
             self.assertEqual(attribute, v)
         self.assertEqual(quote.user, self.user)
 
